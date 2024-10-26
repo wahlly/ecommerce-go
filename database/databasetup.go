@@ -7,10 +7,9 @@ import (
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func DBSet() *mongo.Client{
+func DBSet() *mongo.Client {
 	// client, err := mongo.NewClient(options.Client().ApplyURI("mongodb://localhost:27017"))
 	// client, err := mongo.Connect(ctx)
 
@@ -45,12 +44,12 @@ func DBSet() *mongo.Client{
 
 var Client *mongo.Client = DBSet()
 
-func UserData(client *mongo.Client, collectionName string) *mongo.Collection{
+func UserData(client *mongo.Client, collectionName string) *mongo.Collection {
 	var collection *mongo.Collection = client.Database("Ecommerce").Collection(collectionName)
 	return collection
 }
 
-func ProductData(client *mongo.Client, collectionName string) *mongo.Collection{
-	var productcollection *mongo.Collection = client.Database("Ecommerce").Collection(collectionName)
+func ProductData(client *mongo.Client, collectionName string) *mongo.Collection {
+	var productCollection *mongo.Collection = client.Database("Ecommerce").Collection(collectionName)
 	return productCollection
 }

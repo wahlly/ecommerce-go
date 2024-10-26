@@ -13,7 +13,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func AddAddress() gin.HandlerFunc{
+func AddAddress() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		user_id := c.Query("id")
 		if user_id == "" {
@@ -62,7 +62,7 @@ func AddAddress() gin.HandlerFunc{
 			if err != nil {
 				fmt.Println(err)
 			}
-		}else{
+		} else {
 			c.IndentedJSON(http.StatusBadRequest, "Not Allowed")
 		}
 		defer cancel()
@@ -70,7 +70,7 @@ func AddAddress() gin.HandlerFunc{
 	}
 }
 
-func EditHomeAddress() gin.HandlerFunc{
+func EditHomeAddress() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		user_id := c.Query("id")
 		if user_id == "" {
@@ -104,7 +104,7 @@ func EditHomeAddress() gin.HandlerFunc{
 	}
 }
 
-func EditWorkAddress() gin.HandlerFunc{
+func EditWorkAddress() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		user_id := c.Query("id")
 		if user_id == "" {
@@ -138,10 +138,10 @@ func EditWorkAddress() gin.HandlerFunc{
 	}
 }
 
-func DeleteAddress() gin.HandlerFunc{
-	return func (c *gin.Context) {
+func DeleteAddress() gin.HandlerFunc {
+	return func(c *gin.Context) {
 		user_id := c.Query("id")
-		if user_id == ""{
+		if user_id == "" {
 			c.Header("Content-Type", "application/json")
 			c.JSON(http.StatusNotFound, gin.H{"Error": "Invalid Search Index"})
 			c.Abort()

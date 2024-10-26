@@ -10,8 +10,9 @@ import (
 	"github.com/wahlly/ecommerce-go/database"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/bson"
 )
-
 
 type SignedDetails struct {
 	Email string
@@ -58,7 +59,7 @@ func TokenGenerator(email string, firstname string, lastname string, uid string)
 }
 
 func ValidateToken(signedtoken string) (claims *SignedDetails, msg string) {
-	token, err := jwt.ParseWithClaims(signedtoken, &SignedDetails{}, func(token *jwt.Token) {
+	token, err := jwt.ParseWithClaims(signedtoken, &SignedDetails{}, func(token *jwt.Token) (interface {}, error) {
 		return []byte(SECRET_KEY), nil
 	})
 
@@ -73,7 +74,7 @@ func ValidateToken(signedtoken string) (claims *SignedDetails, msg string) {
 		return
 	}
 
-	claims.ExpiresAt < time.Now().Local().Unix() {
+	if claims.ExpiresAt < time.Now().Local().Unix() {
 		msg = "token is already expired"
 		return
 	}
@@ -88,18 +89,18 @@ func UpdateAllTokens(signedtoken string, signedrefreshtoken string, userid strin
 
 	updateobj = append(updateobj, bson.E{Key: "token", Value: signedtoken})
 	updateobj = append(updateobj, bson.E{Key: "refreshtoken", Value: signedrefreshtoken})
-	updated_at, _ := time.Parse(time.RFC3339, time.Now().formate(time.RFC3339)
+	updated_at, _ := time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
 	updateobj = append(updateobj, bson.E{Key: "updatedat", Value: updated_at})
 
 	upsert := true
 
 	filter := bson.M{"user_id": userid}
 	opt := options.UpdateOptions{
-		Upsert: &upsert
+		Upsert: &upsert,
 	}
 
 	_, err := UserData.UpdateOne(ctx, filter, bson.D{
-		Key: "$set", Value: updateobj
+		{Key: "$set", Value: updateobj},
 	}, &opt)
 	defer cancel()
 

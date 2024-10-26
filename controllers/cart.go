@@ -9,25 +9,25 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/wahlly/ecommerce-go/database"
+	"github.com/wahlly/ecommerce-go/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-	type Application struct{
-		prodCollection *mongo.Collection
-		UserCollection *mongo.Collection
+type Application struct {
+	prodCollection *mongo.Collection
+	userCollection *mongo.Collection
+}
+
+func NewApplication(prodCollection, userCollection *mongo.Collection) *Application {
+	return &Application{
+		prodCollection: prodCollection,
+		userCollection: userCollection,
 	}
+}
 
-	func NewApplication(prodCollection, userCollection *mongo.Collection) *Application {
-		return &Application{
-			prodCollection: prodCollection,
-			userCollection: userCollection
-		}
-	}
-
-
-func (app *Application) AddToCart() gin.HandlerFunc{
+func (app *Application) AddToCart() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		productQueryId := c.Query("id")
 		if productQueryId == "" {
@@ -44,11 +44,11 @@ func (app *Application) AddToCart() gin.HandlerFunc{
 			return
 		}
 
-		productID, err != primitive.ObjectIDFromHex(productQueryId)
+		productID, err := primitive.ObjectIDFromHex(productQueryId)
 
-		if err != nil{
+		if err != nil {
 			log.Println(err)
-			c.AbortWithStatus(http.statusInternal sellor)
+			c.AbortWithStatus(http.StatusInternalServerError)
 			return
 		}
 
@@ -56,7 +56,7 @@ func (app *Application) AddToCart() gin.HandlerFunc{
 
 		defer cancel()
 
-		err = database.AddProductToCart(ctx, app.prodCollection,, app.userCollection, productID, userqueryID)
+		err = database.AddProductToCart(ctx, app.prodCollection, app.userCollection, productID, userQueryId)
 		if err != nil {
 			c.IndentedJSON(http.StatusInternalServerError, err)
 		}
@@ -64,8 +64,8 @@ func (app *Application) AddToCart() gin.HandlerFunc{
 	}
 }
 
-func (app *Application) Removeitem() gin.HandlerFunc{
-	return func (c *gin.Context) {
+func (app *Application) Removeitem() gin.HandlerFunc {
+	return func(c *gin.Context) {
 		productQueryId := c.Query("id")
 		if productQueryId == "" {
 			log.Println("product id is empty")
@@ -81,11 +81,11 @@ func (app *Application) Removeitem() gin.HandlerFunc{
 			return
 		}
 
-		productID, err != primitive.ObjectIDFromHex(productQueryId)
+		productID, err := primitive.ObjectIDFromHex(productQueryId)
 
-		if err != nil{
+		if err != nil {
 			log.Println(err)
-			c.AbortWithStatus(http.statusInternal sellor)
+			c.AbortWithStatus(http.StatusInternalServerError)
 			return
 		}
 
@@ -93,7 +93,7 @@ func (app *Application) Removeitem() gin.HandlerFunc{
 
 		defer cancel()
 
-		err = database.RemoveCartItem(ctx, app.prodCollection, app.UserCollection, productQueryId, userQueryId)
+		err = database.RemoveCartItem(ctx, app.prodCollection, app.userCollection, productID, userQueryId)
 		if err != nil {
 			c.IndentedJSON(http.StatusInternalServerError, err)
 			return
@@ -103,7 +103,7 @@ func (app *Application) Removeitem() gin.HandlerFunc{
 	}
 }
 
-func GetItemFromCart() gin.HandlerFunc{
+func GetItemFromCart() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		user_id := c.Query("id")
 		if user_id == "" {
@@ -118,8 +118,8 @@ func GetItemFromCart() gin.HandlerFunc{
 		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
 		defer cancel()
 
-		var filledcart models.UserID
-		err := UserCollection.FindOne(ctx, bson.D{primitive.E{Key: "_id", Value: usert_id}}).Decode()
+		var filledcart models.User
+		err := UserCollection.FindOne(ctx, bson.D{primitive.E{Key: "_id", Value: usert_id}}).Decode(&filledcart)
 		if err != nil {
 			log.Println(err)
 			c.IndentedJSON(http.StatusInternalServerError, "not found")
@@ -128,7 +128,7 @@ func GetItemFromCart() gin.HandlerFunc{
 
 		filter_match := bson.D{{Key: "$match", Value: bson.D{primitive.E{Key: "_id", Value: usert_id}}}}
 		unwind := bson.D{{Key: "$unwind", Value: bson.D{primitive.E{Key: "path", Value: "$usercart"}}}}
-		grouping := bson.D{{Key: "$group", Value: bson.D{primitive.E{Key: "_id", Value: "$_id"}, {Key: "total",  Value: bson.D{primitive.E{Key: "$sum", Value: "$usercart.price"}}}}}}
+		grouping := bson.D{{Key: "$group", Value: bson.D{primitive.E{Key: "_id", Value: "$_id"}, {Key: "total", Value: bson.D{primitive.E{Key: "$sum", Value: "$usercart.price"}}}}}}
 		pointCursor, err := UserCollection.Aggregate(ctx, mongo.Pipeline{filter_match, unwind, grouping})
 		if err != nil {
 			log.Println(err)
@@ -147,9 +147,9 @@ func GetItemFromCart() gin.HandlerFunc{
 	}
 }
 
-func (app *Application) BuyFromCart() gin.HandlerFunc{
+func (app *Application) BuyFromCart() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		userQueryId = c.Query("id")
+		userQueryId := c.Query("id")
 		if userQueryId == "" {
 			log.Panic("user id is empty")
 			_ = c.AbortWithError(http.StatusBadRequest, errors.New("UserID is empty"))
@@ -158,17 +158,17 @@ func (app *Application) BuyFromCart() gin.HandlerFunc{
 		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
 		defer cancel()
 
-		err := database.BuyItemFromCart(ctx, app.UserCollection, app.prodCollection, userQueryId)
+		err := database.BuyItemFromCart(ctx, app.userCollection, userQueryId)
 		if err != nil {
 			c.IndentedJSON(http.StatusInternalServerError, err)
 		}
 
-		c.IndentedJSON("successfully placed the order")
+		c.IndentedJSON(200, "successfully placed the order")
 
 	}
 }
 
-func (app *Application) InstantBuy() gin.HandlerFunc{
+func (app *Application) InstantBuy() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		productQueryId := c.Query("id")
 		if productQueryId == "" {
@@ -185,11 +185,11 @@ func (app *Application) InstantBuy() gin.HandlerFunc{
 			return
 		}
 
-		productID, err != primitive.ObjectIDFromHex(productQueryId)
+		productID, err := primitive.ObjectIDFromHex(productQueryId)
 
-		if err != nil{
+		if err != nil {
 			log.Println(err)
-			c.AbortWithStatus(http.statusInternal sellor)
+			c.AbortWithStatus(http.StatusInternalServerError)
 			return
 		}
 
@@ -197,7 +197,7 @@ func (app *Application) InstantBuy() gin.HandlerFunc{
 
 		defer cancel()
 
-		err = database.InstantBuyer(ctx, app.prodCollection, app.UserCollection, productQueryId, userQueryId)
+		err = database.InstantBuyer(ctx, app.prodCollection, app.userCollection, productID, userQueryId)
 		if err != nil {
 			c.IndentedJSON(http.StatusInternalServerError, err)
 			return

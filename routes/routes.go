@@ -5,9 +5,9 @@ import (
 	"github.com/wahlly/ecommerce-go/controllers"
 )
 
-func UserRoutes(incomingRoutes *gin.Engine){
-	incomingRoutes.POST("users/signup", controllers.signup())
-	incomingRoutes.POST("users/login", controllers.login())
+func UserRoutes(incomingRoutes *gin.Engine) {
+	incomingRoutes.POST("users/signup", controllers.Signup())
+	incomingRoutes.POST("users/login", controllers.Login())
 	incomingRoutes.POST("users/addProduct", controllers.ProductViewerAdmin())
 	incomingRoutes.GET("users/productView", controllers.SearchProduct())
 	incomingRoutes.GET("users/search", controllers.SearchProductByQuery())

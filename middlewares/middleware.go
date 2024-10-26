@@ -7,7 +7,6 @@ import (
 	"github.com/wahlly/ecommerce-go/tokens"
 )
 
-
 func Authentication() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ClientToken := c.Request.Header.Get("token")
